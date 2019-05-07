@@ -1,0 +1,35 @@
+module Biflux_address_book =
+
+let LOWER_OR_NUMBER : regexp = ([a-z] | [0-9])+
+let NAME : regexp = ([A-Z] . [a-z]* )
+let NAMES : regexp = "\n\t\t<name>" . NAME . (" " . NAME)* . "</name>"
+let NII_EMAIL : regexp = LOWER_OR_NUMBER . "@nii.ac.jp"
+let NON_NII_DOMAIN : regexp = "gmail" | "comcast" | "domain"
+let OTHER_EMAIL : regexp = LOWER_OR_NUMBER . ("@" | "") . NON_NII_DOMAIN . ("." . LOWER_OR_NUMBER)*
+
+let NII_EMAIL_XML = ("\n\t\t<email>" . NII_EMAIL . "</email>")
+
+let NON_NII_EMAIL_XML = skip ("\n\t\t<email>" . OTHER_EMAIL . "</email>")
+
+let delete_non_nii_email = synth NON_NII_EMAIL_XML* <=> ""
+
+let NII_EMAILS : regexp =
+(NII_EMAIL_XML . NON_NII_EMAIL_XML* )*
+test matches_cex NII_EMAILS "
+		<email>hpacheco@nii.ac.jp</email>
+		<email>hpacheco@gmail.com</email>" = true
+
+let ONLY_NII_EMAILS : regexp = "" . (NII_EMAIL_XML . "" )*
+test matches_cex ONLY_NII_EMAILS "
+		<email>hpacheco@nii.ac.jp</email>" = true
+
+let project_non_nii_emails : (lens in NII_EMAILS <-> ONLY_NII_EMAILS) =
+synth NII_EMAILS <=> ONLY_NII_EMAILS
+using
+{ createrex
+("
+		<email>hpacheco@nii.ac.jp</email>
+		<email>hpacheco@gmail.com</email>",
+"
+		<email>hpacheco@nii.ac.jp</email>")
+}
