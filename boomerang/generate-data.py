@@ -24,7 +24,7 @@ TIMEOUT_TIME = 60
 STILL_WORK_TIMEOUT_TIME = 120
 GENERATE_EXAMPLES_TIMEOUT_TIME = 600000
 
-REPETITION_COUNT = 5
+REPETITION_COUNT = 20
 
 def ensure_dir(f):
     d = os.path.dirname(f)
@@ -51,8 +51,8 @@ def gather_datum(prog, path, base, additional_flags, timeout):
 def gather_data(rootlength, prog, path, base):
     current_data = {"Test":join(path, base).replace("_","-")[rootlength:]}
 
-    def gather_col(flags, run_combiner, col_name, timeout_time, repetition_count):
-        print(col_name)
+    def gather_col(flags, run_combiner, col_names, timeout_time, repetition_count):
+        print(col_names)
         run_data = []
         timeout = False
         error = False
@@ -66,87 +66,50 @@ def gather_data(rootlength, prog, path, base):
                 break
             run_data.append([time] + datum.split(","))
         if error:
-            current_data[col_name]=[-1]
+            for col_name in col_names:
+                current_data[col_name]=[-1]
         elif timeout:
+            for col_name in col_names:
 	        current_data[col_name]=[-1]
         else:
             run_data_transpose = transpose(run_data)
-            current_data[col_name]=run_combiner(run_data_transpose)
+            for (col_name,col_val) in zip(col_names,run_combiner(run_data_transpose)):
+                current_data[col_name]=col_val
 
     def ctime_combiner(run_data_transpose):
         print(run_data_transpose[0])
         computation_time_col = [float(x) for x in run_data_transpose[0]]
-        ans = stddev(computation_time_col)
-        return ans
+        mean = float(sum(computation_time_col) / len(computation_time_col))
+        std = stddev(computation_time_col)
+        return [mean,std]
 
     def exs_reqd_combiner(run_data_transpose):
 	    example_number_col = [float(x) for x in run_data_transpose[0]]
-	    return "{:.1f}".format(sum(example_number_col)/len(example_number_col))
+	    return ["{:.1f}".format(sum(example_number_col)/len(example_number_col))]
 
     def max_exs_reqd_combiner(run_data_transpose):
 	    example_number_col = [float(x) for x in run_data_transpose[0]]
-	    return int(sum(example_number_col)/len(example_number_col))
+	    return [int(sum(example_number_col)/len(example_number_col))]
 
     def specsize_combiner(run_data_transpose):
             print(run_data_transpose[1])
 	    example_number_col = [float(x) for x in run_data_transpose[1]]
-	    return int(sum(example_number_col)/len(example_number_col))
+	    return [int(sum(example_number_col)/len(example_number_col))]
 
 
-    gather_col([],ctime_combiner,"SS",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(["-noCS"],ctime_combiner,"SSNC",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(["-bijSynth"],ctime_combiner,"BS",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(["-bijSynth","-noCS"],ctime_combiner,"BSNC",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(["-noKeepGoing"],ctime_combiner,"NoTP",TIMEOUT_TIME,1)
-    ##gather_col(["-twentyfivetc"],ctime_combiner,"TC25",TIMEOUT_TIME,1)
-    ##gather_col(["-negtwentyfivetc"],ctime_combiner,"TCN25",TIMEOUT_TIME,1)
-    #gather_col(["-noTerminationCondition"],ctime_combiner,"FC",TIMEOUT_TIME,1)
-    #gather_col(["-dumbCost"],ctime_combiner,"NM",TIMEOUT_TIME,1)
-    #gather_col(["-dumbCostCorrectPair"],ctime_combiner,"NMCC",TIMEOUT_TIME,1)
-    #gather_col(["-constantCost"],ctime_combiner,"ConstCost",TIMEOUT_TIME,1)
-    #gather_col(["-constantCostCorrectPair"],ctime_combiner,"ConstCostCC",TIMEOUT_TIME,1)
-    #gather_col(["-noSkip"],ctime_combiner,"NoSkip",TIMEOUT_TIME,1)
-    #gather_col(["-noRequire"],ctime_combiner,"NoRequire",TIMEOUT_TIME,1)
-    #gather_col(["-regexSize"],specsize_combiner,"RegexSize",TIMEOUT_TIME,1)
-    #gather_col(["-lensSize"],specsize_combiner,"LensSize",TIMEOUT_TIME,1)
-    ##gather_col(['-forceexpand','-time'],ctime_combiner,"ForceExpandTime",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-naive_strategy','-time'],ctime_combiner,"NaiveStrategy",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-naive_pqueue','-time'],ctime_combiner,"NaivePQueue",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-no_short_circuit','-time'],ctime_combiner,"NoShortCircuit",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-no_lens_context','-time'],ctime_combiner,"NoLensContext",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-no_short_circuit','-no_inferred_expansions','-no_lens_context','-time'],ctime_combiner,"NoInferenceNoLCNoSC",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-no_short_circuit','-no_lens_context','-time'],ctime_combiner,"NoLCNoSC",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-naive_expansion_search','-no_lens_context','-time'],ctime_combiner,"NaiveExpansionNoLC",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-use_only_forced_expansions','-no_lens_context','-time'],ctime_combiner,"OnlyForcedExpansionsNoLC",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-naive_expansion_search','-time'],ctime_combiner,"NaiveExpansion",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-use_only_forced_expansions','-time'],ctime_combiner,"OnlyForcedExpansions",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-forceexpand','-naive_expansion_search','-time'],ctime_combiner,"NoUDTypes",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-generatedexamples'],exs_reqd_combiner,"ExamplesRequired",TIMEOUT_TIME,REPETITION_COUNT)
-    #gather_col(['-max_to_specify'],max_exs_reqd_combiner,"MaxExampleCount",TIMEOUT_TIME,1)
-    #gather_col(['-spec_size'],max_exs_reqd_combiner,"SpecSize",TIMEOUT_TIME,1)
-    #gather_col(['-lens_size'],max_exs_reqd_combiner,"LensSize",TIMEOUT_TIME,1)
-    #gather_col(['-examples_count'],max_exs_reqd_combiner,"ExamplesCount",TIMEOUT_TIME,1)
-    #gather_col(['-lens_size','-no_simplify_generated_lens'],max_exs_reqd_combiner,"LensSizeNoMinimize",TIMEOUT_TIME,1)
-    #gather_col(['-lens_and_spec_size'],max_exs_reqd_combiner,"LensAndSpecSize",TIMEOUT_TIME,1)
-    #gather_col(['-possible_lenses_ex', '0', '5'],max_exs_reqd_combiner,"ZeroExamplesPossibilities",TIMEOUT_TIME,1)
-    #gather_col(['-possible_lenses_ex', '2', '5'],max_exs_reqd_combiner,"TwoExamplesPossibilities",TIMEOUT_TIME,10)
-    #gather_col(['-possible_lenses_ex', '5', '5'],max_exs_reqd_combiner,"FiveExamplesPossibilities",TIMEOUT_TIME,10)
-    #gather_col(['-compositional_lenses_used'],max_exs_reqd_combiner,"CompositionalLensesUsed",TIMEOUT_TIME,1)
-    #gather_col(['-lens_size','-no_lens_context'],max_exs_reqd_combiner,"LensSizeNoLensContext",TIMEOUT_TIME,1)
-    #gather_col(['-expansions_inferred'],max_exs_reqd_combiner,"ExpansionsInferred",TIMEOUT_TIME,1)
-    #gather_col(['-expansions_inferred','-no_lens_context'],max_exs_reqd_combiner,"ExpansionsInferredNoLensContext",TIMEOUT_TIME,1)
-    #gather_col(['-expansions_forced'],max_exs_reqd_combiner,"ExpansionsForced",TIMEOUT_TIME,1)
-    #gather_col(['-expansions_forced','-no_lens_context'],max_exs_reqd_combiner,"ExpansionsForcedNoLensContext",TIMEOUT_TIME,1)
-    #gather_col(['-specs_visited'],max_exs_reqd_combiner,"SpecsVisited",TIMEOUT_TIME,1)
-    #gather_col(['-specs_visited','-naive_expansion_search'],max_exs_reqd_combiner,"SpecsVisitedNaiveExpansion",TIMEOUT_TIME,1)
-    #gather_col(['-specs_visited','-use_only_forced_expansions'],max_exs_reqd_combiner,"SpecsVisitedOnlyForcedExpansions",TIMEOUT_TIME,1)
-    #gather_col(['-specs_visited','-no_lens_context'],max_exs_reqd_combiner,"SpecsVisitedNoLensContext",TIMEOUT_TIME,1)
-    #gather_col(['-expansions_performed'],max_exs_reqd_combiner,"ExpansionsPerformed",TIMEOUT_TIME,1)
-    #gather_col(['-expansions_performed','-no_lens_context'],max_exs_reqd_combiner,"ExpansionsPerformedNoLensContext",TIMEOUT_TIME,1)
-    ##gather_col(['-naive_pqueue','-no_lens_context','-time'],ctime_combiner,"NoLensContextNPQ",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-naive_pqueue','-no_short_circuit','-no_inferred_expansions','-no_lens_context','-time'],ctime_combiner,"NoInferenceNoLCNoSCNPQ",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-naive_pqueue','-no_short_circuit','-no_lens_context','-time'],ctime_combiner,"NoLCNoSCNPQ",TIMEOUT_TIME,REPETITION_COUNT)
-    ##gather_col(['-naive_pqueue','-no_inferred_expansions','-no_lens_context','-time'],ctime_combiner,"NoInferenceNoLCNPQ",TIMEOUT_TIME,REPETITION_COUNT)
+    gather_col([],ctime_combiner,["SS","SS_STD"],TIMEOUT_TIME,REPETITION_COUNT)
+    gather_col(["-noCS"],ctime_combiner,["SSNC"],TIMEOUT_TIME,REPETITION_COUNT)
+    gather_col(["-bijSynth"],ctime_combiner,["BS"],TIMEOUT_TIME,REPETITION_COUNT)
+    gather_col(["-bijSynth","-noCS"],ctime_combiner,["BSNC"],TIMEOUT_TIME,REPETITION_COUNT)
+    gather_col(["-noTerminationCondition"],ctime_combiner,["FC"],TIMEOUT_TIME,1)
+    gather_col(["-dumbCost"],ctime_combiner,["NM"],TIMEOUT_TIME,1)
+    gather_col(["-dumbCostCorrectPair"],ctime_combiner,["NMCC"],TIMEOUT_TIME,1)
+    gather_col(["-constantCost"],ctime_combiner,["ConstCost"],TIMEOUT_TIME,1)
+    gather_col(["-constantCostCorrectPair"],ctime_combiner,["ConstCostCC"],TIMEOUT_TIME,1)
+    gather_col(["-noSkip"],ctime_combiner,["NoSkip"],TIMEOUT_TIME,1)
+    gather_col(["-noRequire"],ctime_combiner,["NoRequire"],TIMEOUT_TIME,1)
+    gather_col(["-regexSize"],specsize_combiner,["RegexSize"],TIMEOUT_TIME,1)
+    gather_col(["-lensSize"],specsize_combiner,["LensSize"],TIMEOUT_TIME,1)
 
     return current_data
 
