@@ -17,8 +17,6 @@ import matplotlib.pyplot as plt
 
 plt.rc('font', size=10)
 plt.rc('legend', fontsize=10)
-plt.rcParams['text.usetex'] = True
-plt.rcParams['text.latex.preamble'] = '\usepackage{libertine},\usepackage[libertine]{newtxmath},\usepackage[T1]{fontenc}'
 
 generated_graphs_base = "generated-graphs/"
 transformed_data_base = "transformed-data/"
@@ -70,10 +68,10 @@ def generate_examples_required_graph(input_csv):
 
     rects1 = ax.bar(ind, [nm_count,fc_count,constcostcc_count,no_skip_count,no_require_count], width, color='#ffffb3', align='center')
 
-    ax.set_ylabel('Benchmarks\nCompleted')
+    ax.set_ylabel('Benchmarks Completed')
     ax.set_xlabel('Run Mode')
     ax.set_xticks(ind)
-    ax.set_xticklabels(["\\textbf{Any}","\\textbf{FL}","\\textbf{DC}","\\textbf{NS}","\\textbf{NR}"])
+    ax.set_xticklabels(["Any","FL","DC","NS","NR"])
 
     fig = plt.figure(3,tight_layout=True)
     #ax.step([-.5,4.5],[48.1,48.1],label="Benchmark Count",linestyle=":",
@@ -247,7 +245,7 @@ def generate_examplecount_vs_tasks_graph(input_csv):
 
     ax.set_ylabel('Benchmarks Definable')
     ax.set_xlabel('Example Count')
-    ax.set_title("Example Count vs\nBenchmarks Definable")
+    ax.set_title("Example Count vs Benchmarks Definable")
 
     fig = plt.figure(6,tight_layout=True)
     fig.set_figheight(1.5)
@@ -284,7 +282,7 @@ def generate_specsize_vs_tasks_graph(input_csv):
 
     ax.set_ylabel('Benchmarks Definable')
     ax.set_xlabel('AST Count')
-    ax.set_title("AST Count vs\nBenchmarks Definable")
+    ax.set_title("AST Count vs Benchmarks Definable")
 
     fig = plt.figure(5,tight_layout=True)
     fig.set_figheight(1.5)
@@ -318,10 +316,10 @@ def generate_time_vs_tasks_graph_vs_bijective(input_csv):
 
     #ax.step([0,60],[39.1,39.1],label="Benchmark Count",linestyle=":",
     #        linewidth=1, dashes=(1,1))
-    create_step_plot("BS","\\textbf{BS}",':',normal_size)
-    create_step_plot("SS","\\textbf{SS}",'-',normal_size)
+    create_step_plot("BS","BS",':',normal_size)
+    create_step_plot("SS","SS",'-',normal_size)
 
-    ax.set_ylabel('Benchmarks\nCompleted')
+    ax.set_ylabel('Benchmarks Completed')
     ax.set_xlabel('Time (s)')
 
     #l = ax.legend(bbox_to_anchor=(1.6,1),borderaxespad=0)
@@ -364,10 +362,10 @@ def generate_time_vs_tasks_graph(input_csv):
 
     #ax.step([0,60],[48.1,48.1],label="Benchmark Count",linestyle=":",
     #        linewidth=1, dashes=(1,1))
-    create_step_plot("SS","\\textbf{SS}",'-',normal_size)
-    create_step_plot("SSNC","\\textbf{SSNC}",':',normal_size)
+    create_step_plot("SS","SS",'-',normal_size)
+    create_step_plot("SSNC","SSNC",':',normal_size)
 
-    ax.set_ylabel('Benchmarks\nCompleted')
+    ax.set_ylabel('Benchmarks Completed')
     ax.set_xlabel('Time (s)')
 
     l = ax.legend(bbox_to_anchor=(1.3,1),borderaxespad=0)
