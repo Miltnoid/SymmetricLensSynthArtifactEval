@@ -45,7 +45,7 @@ def gather_datum(prog, path, base, additional_flags, timeout):
     start = time.time()
     process_output = EasyProcess([prog] + BASE_FLAGS + additional_flags + [join(path, base + TEST_EXT)]).call(timeout=timeout)
     end = time.time()
-    return ((end - start), process_output.stdout,process_output.stderr)
+    return ((end - start), process_output.stdout,process_output.stderr,process_output.return_code)
 
 
 def gather_data(rootlength, prog, path, base):
@@ -57,8 +57,8 @@ def gather_data(rootlength, prog, path, base):
         timeout = False
         error = False
         for iteration in range(repetition_count):
-    	    (time,datum,err) = gather_datum(prog, path, base,flags,timeout_time)
-            if err != "":
+    	    (time,datum,err,return_code) = gather_datum(prog, path, base,flags,timeout_time)
+            if err != "" or return_code != 0:
                 error = True
                 break
             if time > TIMEOUT_TIME:
@@ -80,6 +80,12 @@ def gather_data(rootlength, prog, path, base):
         print(run_data_transpose[0])
         computation_time_col = [float(x) for x in run_data_transpose[0]]
         mean = float(sum(computation_time_col) / len(computation_time_col))
+        return [mean]
+
+    def ctime_combiner_stddev(run_data_transpose):
+        print(run_data_transpose[0])
+        computation_time_col = [float(x) for x in run_data_transpose[0]]
+        mean = float(sum(computation_time_col) / len(computation_time_col))
         std = stddev(computation_time_col)
         return [mean,std]
 
@@ -97,7 +103,7 @@ def gather_data(rootlength, prog, path, base):
 	    return [int(sum(example_number_col)/len(example_number_col))]
 
 
-    gather_col([],ctime_combiner,["SS","SS_STD"],TIMEOUT_TIME,REPETITION_COUNT)
+    gather_col([],ctime_combiner_stddev,["SS","SS_STD"],TIMEOUT_TIME,REPETITION_COUNT)
     gather_col(["-noCS"],ctime_combiner,["SSNC"],TIMEOUT_TIME,REPETITION_COUNT)
     gather_col(["-bijSynth"],ctime_combiner,["BS"],TIMEOUT_TIME,REPETITION_COUNT)
     gather_col(["-bijSynth","-noCS"],ctime_combiner,["BSNC"],TIMEOUT_TIME,REPETITION_COUNT)
@@ -156,6 +162,7 @@ def main(args):
                 print(join(path, base + TEST_EXT).replace("_","-")[rootlength:])
                 current_data = gather_data(rootlength,prog, path, base)
                 data.append(current_data)
+                print(data)
             #data = sort_data(data)
 	    print_data(data,fname)
         else:
