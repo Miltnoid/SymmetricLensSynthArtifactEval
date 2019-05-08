@@ -162,7 +162,6 @@ def main(args):
                 print(join(path, base + TEST_EXT).replace("_","-")[rootlength:])
                 current_data = gather_data(rootlength,prog, path, base)
                 data.append(current_data)
-                print(data)
             #data = sort_data(data)
 	    print_data(data,fname)
         else:
